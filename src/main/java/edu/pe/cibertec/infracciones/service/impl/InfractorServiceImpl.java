@@ -11,6 +11,9 @@ import edu.pe.cibertec.infracciones.repository.VehiculoRepository;
 import edu.pe.cibertec.infracciones.service.IInfractorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import edu.pe.cibertec.infracciones.model.Multa;
+import edu.pe.cibertec.infracciones.repository.MultaRepository;
+import edu.pe.cibertec.infracciones.model.EstadoMulta;
 import java.util.List;
 
 @Service
@@ -19,6 +22,7 @@ public class InfractorServiceImpl implements IInfractorService {
 
     private final InfractorRepository infractorRepository;
     private final VehiculoRepository vehiculoRepository;
+    private final MultaRepository multaRepository;
 
     @Override
     public InfractorResponseDTO registrarInfractor(InfractorRequestDTO dto) {
@@ -54,6 +58,24 @@ public class InfractorServiceImpl implements IInfractorService {
                 .orElseThrow(() -> new VehiculoNotFoundException(vehiculoId));
         infractor.getVehiculos().add(vehiculo);
         infractorRepository.save(infractor);
+    }
+
+    @Override
+    public Double calcularDeuda(Long infractorId) {
+
+        List<Multa> multas = multaRepository.findByInfractor_Id(infractorId);
+
+        double total = 0.0;
+
+        for (Multa multa : multas) {
+            if (multa.getEstado() == EstadoMulta.VENCIDA) {
+                total += multa.getMonto() * 1.15;
+            } else {
+                total += multa.getMonto();
+            }
+        }
+
+        return total;
     }
 
 
