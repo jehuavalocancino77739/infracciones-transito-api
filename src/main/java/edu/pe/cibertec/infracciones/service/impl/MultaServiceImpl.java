@@ -141,4 +141,6 @@ public class MultaServiceImpl implements IMultaService {
         multaRepository.save(multa);
     }
 
+
+
 }

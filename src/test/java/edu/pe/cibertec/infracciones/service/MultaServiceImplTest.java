@@ -1,5 +1,6 @@
 package edu.pe.cibertec.infracciones.service;
 
+import edu.pe.cibertec.infracciones.exception.InfractorBloqueadoException;
 import edu.pe.cibertec.infracciones.model.EstadoMulta;
 import edu.pe.cibertec.infracciones.model.Infractor;
 import edu.pe.cibertec.infracciones.model.Multa;
@@ -9,11 +10,14 @@ import edu.pe.cibertec.infracciones.repository.MultaRepository;
 import edu.pe.cibertec.infracciones.service.impl.MultaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,8 +76,12 @@ class MultaServiceImplTest {
 
         assertDoesNotThrow(() -> multaService.transferirMulta(1L, 2L));
 
-        assertEquals(infractorB, multaPendiente.getInfractor());
-        verify(multaRepository, times(1)).save(multaPendiente);
+
+        ArgumentCaptor<Multa> multaCaptor = ArgumentCaptor.forClass(Multa.class);
+        verify(multaRepository, times(1)).save(multaCaptor.capture());
+
+        Multa multaGuardada = multaCaptor.getValue();
+        assertEquals(infractorB, multaGuardada.getInfractor());
     }
 
     @Test
@@ -85,18 +93,6 @@ class MultaServiceImplTest {
                 () -> multaService.transferirMulta(1L, 2L));
 
         assertEquals("Solo se pueden transferir multas pendientes", ex.getMessage());
-    }
-
-    @Test
-    void testTransferirMulta_InfractorBloqueado() {
-        infractorB.setBloqueado(true);
-        when(multaRepository.findById(1L)).thenReturn(Optional.of(multaPendiente));
-        when(infractorRepository.findById(2L)).thenReturn(Optional.of(infractorB));
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> multaService.transferirMulta(1L, 2L));
-
-        assertEquals("El infractor con id: 2 se encuentra bloqueado", ex.getMessage());
     }
 
     @Test
@@ -123,5 +119,29 @@ class MultaServiceImplTest {
                 () -> multaService.transferirMulta(1L, 99L));
 
         assertEquals("Infractor no encontrado con id: 99", ex.getMessage());
+    }
+
+    @Test
+    void testTransferirMulta_aInfractorBloqueado_Avanzado() {
+        Multa multa1 = new Multa();
+        multa1.setId(1L);
+        multa1.setEstado(EstadoMulta.PENDIENTE);
+        multa1.setVehiculo(vehiculo);
+        multa1.setInfractor(infractorA);
+
+        Infractor infractorBloqueado = new Infractor();
+        infractorBloqueado.setId(2L);
+        infractorBloqueado.setNombre("Juan Perez");
+        infractorBloqueado.setBloqueado(true);
+
+        when(infractorRepository.findById(2L)).thenReturn(Optional.of(infractorBloqueado));
+        when(multaRepository.findById(1L)).thenReturn(Optional.of(multa1));
+
+        assertThrows(InfractorBloqueadoException.class, () -> {
+            multaService.transferirMulta(1L, 2L);
+        });
+
+
+        verify(multaRepository, never()).save(any(Multa.class));
     }
 }

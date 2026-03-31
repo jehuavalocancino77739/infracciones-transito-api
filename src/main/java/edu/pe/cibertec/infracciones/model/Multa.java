@@ -17,6 +17,10 @@ public class Multa {
     @Column(nullable = false, unique = true)
     private String codigo;
 
+
+    @Column(length = 255)
+    private String descripcion;
+
     @Column(nullable = false)
     private Double monto;
 
@@ -45,4 +49,19 @@ public class Multa {
             inverseJoinColumns = @JoinColumn(name = "tipo_infraccion_id")
     )
     private List<TipoInfraccion> tiposInfraccion;
+
+
+    public void asignarInfractor(Infractor infractor) {
+        this.infractor = infractor;
+    }
+
+
+    public void asignarCodigo(String codigo) {
+        this.codigo = codigo;
+    }
+
+
+    public void asignarMonto(Double monto) {
+        this.monto = monto;
+    }
 }
