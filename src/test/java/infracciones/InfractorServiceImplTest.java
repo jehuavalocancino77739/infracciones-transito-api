@@ -1,4 +1,4 @@
-package edu.pe.cibertec.infracciones;
+package infracciones;
 
 import edu.pe.cibertec.infracciones.model.EstadoMulta;
 import edu.pe.cibertec.infracciones.model.Multa;

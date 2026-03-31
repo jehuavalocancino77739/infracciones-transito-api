@@ -1,4 +1,4 @@
-package edu.pe.cibertec.infracciones;
+package infracciones;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
