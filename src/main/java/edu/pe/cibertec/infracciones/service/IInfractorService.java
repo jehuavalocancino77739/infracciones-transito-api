@@ -12,4 +12,6 @@ public interface IInfractorService {
 
     Double calcularDeuda(Long infractorId);
 
+    void desasignarVehiculo(Long infractorId, Long vehiculoId);
+
 }
